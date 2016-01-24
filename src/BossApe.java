@@ -1,19 +1,18 @@
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 
-public class EnemyChimp extends PlayerMonkey {
-	
-	private static final double INITIAL_HEALTH = 50;
-	private static final double HEIGHT = 50;
-	private static final double WIDTH = 40;
+public class BossApe extends PlayerMonkey {
+	private static final double INITIAL_HEALTH = 300;
+	private static final double HEIGHT = 100;
+	private static final double WIDTH = 120;
 	
 	private double myHealth;
 	private double myXPos;
 	private double myYPos;
 	
-	public EnemyChimp(double width, double height) {
+	public BossApe(double width, double height) {
 		myHealth = INITIAL_HEALTH;
-		myXPos = (Math.random()*width/2)+width/2;
+		myXPos = (Math.random()*width/2)+(width/2);
 		myYPos = Math.random()*height/2;
 	}
 	

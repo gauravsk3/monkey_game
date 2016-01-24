@@ -1,46 +1,33 @@
-import java.awt.List;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.TimerTask;
 
-import javax.swing.text.html.HTMLDocument.Iterator;
-
-import com.sun.glass.ui.Timer;
-import com.sun.xml.internal.bind.v2.runtime.reflect.ListIterator;
-
-import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.application.Platform;
 import javafx.scene.Group;
-import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Label;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
 import javafx.scene.paint.Color;
+import javafx.scene.shape.Circle;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.stage.Stage;
-import javafx.util.Duration;
-import javafx.scene.shape.Circle;
 
-public class MonkeyGame {
+public class ApeGame {
 	public static final String TITLE = "Monkey Business";
 	public static final int KEY_INPUT_SPEED = 20;
-	private static int NUM_ENEMIES = 5;
 	private static double ROCK_VELOCITY = 100;
-	public static final int FRAMES_PER_SECOND = 60;
-    private static final int MILLISECOND_DELAY = 1000 / FRAMES_PER_SECOND;
-    private static final double SECOND_DELAY = 1.0 / FRAMES_PER_SECOND;
 	
-	private Stage myStage;
 	private int myWidth;
 	private int myHeight;
 	private Group myRoot;
 	private Scene myScene;
 	private PlayerMonkey myMonkey;
-	private ArrayList<EnemyChimp> myEnemies = new ArrayList<EnemyChimp>();
-	private ArrayList<ImageView> myEnemiesImage = new ArrayList<ImageView>();
+	private BossApe myBoss;
+	private ImageView myBossImage;
 	private ImageView myMonkeyImage;
 	private ImageView myBackground;
 	private Label myHealth;
@@ -52,9 +39,8 @@ public class MonkeyGame {
 		return TITLE;
 	}
 	
-	public Scene init(int width, int height, Stage s) {
+	public Scene init(int width, int height) {
 		myRoot = new Group();
-		myStage = s;
 		myWidth = width;
 		myHeight = height;
 		myScene = new Scene(myRoot, myWidth, myHeight);
@@ -71,11 +57,9 @@ public class MonkeyGame {
 		myMonkeyImage = myMonkey.getImageView("orangutan.jpg");
         myRoot.getChildren().add(myMonkeyImage);
         
-        for ( int i = 0; i < NUM_ENEMIES; i++) {
-        	myEnemies.add(new EnemyChimp(width,height));
-        	myEnemiesImage.add(myEnemies.get(i).getImageView("chimpanzee.jpg"));
-        	myRoot.getChildren().add(myEnemiesImage.get(i));
-        }
+        myBoss = new BossApe(width,height);
+        myBossImage = myBoss.getImageView("ape.jpg");
+        myRoot.getChildren().add(myBossImage);
         
         myHealth = makeHealthLabel();
         myRoot.getChildren().add(myHealth);
@@ -98,7 +82,7 @@ public class MonkeyGame {
 	private Label makeVictoryLabel(boolean didWin) {
 		String messageToPrint;
 		if ( didWin )
-			messageToPrint = "YOU WIN LEVEL 1!";
+			messageToPrint = "YOU WON THE FINAL LEVEL!";
 		else
 			messageToPrint = "YOU LOSE. TRY AGAIN!";
 		Label result = new Label(messageToPrint);
@@ -120,26 +104,18 @@ public class MonkeyGame {
 				myRoot.getChildren().remove(rock);
 			}
 			else {
-				java.util.Iterator<ImageView> enemyImageIter = myEnemiesImage.iterator();
-				java.util.Iterator<EnemyChimp> enemyIter = myEnemies.iterator();
-				while (enemyImageIter.hasNext()) {
-					ImageView enemyImage = enemyImageIter.next();
-					EnemyChimp enemy = enemyIter.next();
-					if ( enemyImage.getBoundsInParent().intersects(rock.getBoundsInParent())) {
-						 enemy.updateHealth(rock.getRadius());
-						if ( enemy.getHealth() <= 0) {
-							myRoot.getChildren().remove(enemyImage);	
-							enemyImageIter.remove();
-							enemyIter.remove();
-						}
-						myRoot.getChildren().remove(rock);
-						if (myEnemies.size() <= 0)
-							endLevel();
-					}
+				if ( myBossImage.getBoundsInParent().intersects(rock.getBoundsInParent())) {
+					 myBoss.updateHealth(rock.getRadius());
+					if ( myBoss.getHealth() <= 0)
+						myRoot.getChildren().remove(myBossImage);
+					myRoot.getChildren().remove(rock);
+					rockIter.remove();
+					if (myBoss.getHealth() <= 0)
+						endGame();
 				}
 			}
 		}
-		if ( myEnemies.size() > 0) {
+		if ( myBoss.getHealth() >= 0) {
 			java.util.Iterator<Circle> enemyRockIter = myEnemyRocks.iterator();
 			while(enemyRockIter.hasNext()) {
 				Circle rock = enemyRockIter.next();
@@ -159,68 +135,55 @@ public class MonkeyGame {
 						myHealth = makeHealthLabel();
 						myRoot.getChildren().add(myHealth);
 						if ( myMonkey.getHealth() <= 0)
-							endLevel();
+							endGame();
 					}
 				}
 			}
 		}
 	}
 	
-	private void endLevel(){
+	private void endGame(){
+		myRoot.getChildren().remove(myMonkeyImage);
+		myRoot.getChildren().remove(myBossImage);
 		if ( myMonkey.getHealth() <= 0)
 			myResult = makeVictoryLabel(false);	
 		else
 			myResult = makeVictoryLabel(true);
 		myRoot.getChildren().add(myResult);
-		
-		ApeGame secondLevel = new ApeGame();
-		
-		Scene secondScene = secondLevel.init(myWidth, myHeight);
-        myStage.setScene(secondScene);
-        myStage.show();
-        
-        KeyFrame secondFrame = new KeyFrame(Duration.millis(MILLISECOND_DELAY), 
-        		e -> secondLevel.step(SECOND_DELAY));
-        Timeline secondAnimation = new Timeline();
-        secondAnimation.setCycleCount(Timeline.INDEFINITE);
-        secondAnimation.getKeyFrames().add(secondFrame);
-        secondAnimation.play();
-        
-        KeyFrame bossFrame = new KeyFrame(Duration.millis(20*MILLISECOND_DELAY), 
-        		e -> secondLevel.apeStep(SECOND_DELAY*400));
-        Timeline bossAnimation = new Timeline();
-        bossAnimation.setCycleCount(Timeline.INDEFINITE);
-        bossAnimation.getKeyFrames().add(bossFrame);
-        bossAnimation.play();
+		java.util.Timer end = new java.util.Timer();
+		end.schedule(new TimerTask() {
+		    public void run () { 
+		    	Platform.exit();
+		    	System.exit(0);
+		    }
+		}, 5000); 
 	}
 	
-	public void enemyStep(double elapsedTime) {
-		for ( int i = 0; i < myEnemies.size(); i++) {
-			enemyMonkeyMovement(i);
-		}
+	public void apeStep(double elapsedTime) {
+		bossMonkeyMovement();
 	}
 	
-	private void enemyMonkeyMovement(int i) {
+	private void bossMonkeyMovement() {
 		int option = (int) (1000*Math.random());
-		if ( option >= 0 && option < 240) {
-			if ( myEnemiesImage.get(i).getX() < myWidth-2*myEnemies.get(i).getWidth() )
-				myEnemiesImage.get(i).setX(myEnemiesImage.get(i).getX() + KEY_INPUT_SPEED*2);
+		if ( option >= 0 && option < 200) {
+			if ( myBossImage.getX() < myWidth-myBoss.getWidth() )
+				myBossImage.setX(myBossImage.getX() + KEY_INPUT_SPEED*2);
 		}
-		if ( option >= 240 && option < 480) {
-			if ( myEnemiesImage.get(i).getX() > myWidth/2+myEnemies.get(i).getWidth())
-				myEnemiesImage.get(i).setX(myEnemiesImage.get(i).getX() - KEY_INPUT_SPEED*2);
+		if ( option >= 200 && option < 400) {
+			if ( myBossImage.getX() > myWidth/2+myBoss.getWidth())
+				myBossImage.setX(myBossImage.getX() - KEY_INPUT_SPEED*2);
 		}
-		if ( option >= 480 && option < 720) {
-			if ( myEnemiesImage.get(i).getY()-myEnemies.get(i).getHeight() > 0 )
-				myEnemiesImage.get(i).setY(myEnemiesImage.get(i).getY() - KEY_INPUT_SPEED*2);
+		if ( option >= 400 && option < 600) {
+			if ( myBossImage.getY() > 0 )
+				myBossImage.setY(myBossImage.getY() - KEY_INPUT_SPEED*2);
 		}
-        if ( option >= 720 && option < 960) {
-        	if ( myEnemiesImage.get(i).getY() < myHeight-2*myEnemies.get(i).getHeight() )
-        		myEnemiesImage.get(i).setY(myEnemiesImage.get(i).getY() + KEY_INPUT_SPEED*2);
+        if ( option >= 600 && option < 800) {
+        	if ( myBossImage.getY() < myHeight-2*myBoss.getHeight() )
+        		myBossImage.setY(myBossImage.getY() + KEY_INPUT_SPEED*2);
         }
-        if ( option >= 960 && option < 1000) {
-        	Circle rock = new Circle(myEnemiesImage.get(i).getX(), myEnemiesImage.get(i).getY() 
-        			- myEnemiesImage.get(i).getFitHeight()/2, 8*Math.random() + 3);
+        if ( option >= 800 && option < 1000) {
+        	Circle rock = new Circle(myBossImage.getX(), myBossImage.getY() 
+        			+ myBossImage.getFitHeight(), 8*Math.random() + 5);
         	myEnemyRocks.add(rock);
         	myRoot.getChildren().add(rock);
         }
@@ -255,5 +218,4 @@ public class MonkeyGame {
                 // do nothing
         }
     }
-
 }

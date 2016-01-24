@@ -12,7 +12,8 @@ import javafx.util.Duration;
  * @author gauravkumar
  */
 public class Main extends Application {
-	private static MonkeyGame myGame;
+	private static MonkeyGame myFirstLevel;
+	private static ApeGame mySecondLevel;
 	public static final int SIZE = 800;
 	public static final int FRAMES_PER_SECOND = 60;
     private static final int MILLISECOND_DELAY = 1000 / FRAMES_PER_SECOND;
@@ -22,26 +23,27 @@ public class Main extends Application {
 	 * @Override from Application class
 	 */
 	public void start(Stage s) {
-		myGame = new MonkeyGame();
-		s.setTitle(myGame.getTitle());
+		myFirstLevel = new MonkeyGame();
+		s.setTitle(myFirstLevel.getTitle());
 		
-		Scene scene = myGame.init(SIZE, SIZE);
+		Scene scene = myFirstLevel.init(SIZE, SIZE,s);
         s.setScene(scene);
         s.show();
         
         KeyFrame frame = new KeyFrame(Duration.millis(MILLISECOND_DELAY), 
-        		e -> myGame.step(SECOND_DELAY));
+        		e -> myFirstLevel.step(SECOND_DELAY));
         Timeline animation = new Timeline();
         animation.setCycleCount(Timeline.INDEFINITE);
         animation.getKeyFrames().add(frame);
         animation.play();
         
-        KeyFrame enemyFrame = new KeyFrame(Duration.millis(2*MILLISECOND_DELAY), 
-        		e -> myGame.enemyStep(SECOND_DELAY*300));
+        KeyFrame enemyFrame = new KeyFrame(Duration.millis(20*MILLISECOND_DELAY), 
+        		e -> myFirstLevel.enemyStep(SECOND_DELAY*600));
         Timeline enemyAnimation = new Timeline();
         enemyAnimation.setCycleCount(Timeline.INDEFINITE);
         enemyAnimation.getKeyFrames().add(enemyFrame);
         enemyAnimation.play();
+		
 	}
 	
 	public static void main(String[] args) {

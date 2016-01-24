@@ -11,14 +11,20 @@ public class PlayerMonkey {
 	private double myXPos;
 	private double myYPos;
 	
+	public PlayerMonkey() {
+		myHealth = INITIAL_HEALTH;
+		myXPos = 400;
+		myYPos = 400;
+	}
+	
 	public PlayerMonkey(double width, double height) {
 		myHealth = INITIAL_HEALTH;
-		myXPos = width/2;
+		myXPos = width*4/3;
 		myYPos = height/2;
 	}
 	
-	public ImageView getImageView() {
-		Image image = new Image(getClass().getClassLoader().getResourceAsStream("orangutan.jpg"));
+	public ImageView getImageView(String imageName) {
+		Image image = new Image(getClass().getClassLoader().getResourceAsStream(imageName));
 		ImageView monkey = new ImageView(image);
 		myXPos -= monkey.getBoundsInLocal().getWidth();
 		monkey.setX(myXPos);
@@ -32,6 +38,10 @@ public class PlayerMonkey {
 		myHealth -= damage;
 	}
 	
+	public void setLosingHealth() {
+		myHealth = 0;
+	}
+	
 	public double getHealth() {
 		return myHealth;
 	}
@@ -43,4 +53,5 @@ public class PlayerMonkey {
 	public double getWidth() {
 		return WIDTH;
 	}
+
 }
