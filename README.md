@@ -19,10 +19,3 @@ How to play the game: destroy the monkeys challenging you by throwing rocks at t
 
 Keys/Mouse input: space to shoot, arrow keys to move
 
-Cheat Keys:
-
-Known bugs: no start menu, weak early opponents
-
-Extra features:
-
-Impressions/Suggestions: difficult assignment, but very fun
